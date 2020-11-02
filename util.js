@@ -10,7 +10,7 @@ export async function getContext() {
 
 export async function getDocument() {
   const context = await RemNoteAPI.v0.get_context();
-  const documentRem = RemNoteAPI.v0.get(context.documentId);
+  const documentRem = await RemNoteAPI.v0.get(context.documentId);
   return documentRem;
 }
 
@@ -25,30 +25,28 @@ export async function getRem(options = {}) {
 export async function getChildren(rem, visibleOnly = False) {
   const children = visibleOnly ? rem.visibleRemOnDocument : rem.children;
   // TODO: Children have the correct order, visibleRemOnDocument don't
-  console.log('Children', children);
   children.reverse();
   return Promise.all(children.map((remId) => RemNoteAPI.v0.get(remId)));
 }
 
 /**
  * Insert an image to a rem.
- * @param {*} rem Rem or RemID 
+ * @param {*} rem Rem or RemID
  */
 export async function insertImage(rem, imageURL) {
   if (typeof rem === 'string') {
-    rem = await getRem({id: rem});
+    rem = await getRem({ id: rem });
   }
   // append
   console.log('remnote append', rem);
   if (rem.content) {
     await RemNoteAPI.v0.update(rem._id, {
-      content: rem.contentAsMarkdown + `![](${imageURL})`
+      content: rem.contentAsMarkdown + `![](${imageURL})`,
     });
   } else {
     await RemNoteAPI.v0.update(rem._id, { name: rem.nameAsMarkdown + `![](${imageURL})` });
   }
 }
-  
 
 export async function getVisibleChildren(remId) {
   return getChildren(remId, true);
@@ -108,10 +106,13 @@ export async function loadTags(rem) {
 
 /** ----------- Plugin related --------------- */
 
-/**
- * @returns URL parameters as an Object. When supplied with duplicate keys, only
- *          the last value is taken
- */
-export function getURLConfig() {
-  return Object.fromEntries(new URLSearchParams(location.search));
+export function getPluginSettings(urlParamsStr, defaultSettings = {}) {
+  const params = new URLSearchParams(urlParamsStr);
+  function camelCase(str) {
+    return str.replace(/-([a-z])/g, function (g) {
+      return g[1].toUpperCase();
+    });
+  }
+  const settings = Object.fromEntries([...params.entries()].map(([k, v]) => [camelCase(k), v]));
+  return Object.assign(defaultSettings, settings);
 }

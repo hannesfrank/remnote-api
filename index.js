@@ -158,7 +158,6 @@ class RemNoteAPIV0 {
   }
 }
 
-console.warn('Evaluating RemNoteAPI');
 const RemNoteAPI = {
   v0: new RemNoteAPIV0(),
 };
