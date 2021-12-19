@@ -22,10 +22,9 @@ export async function getRem(options = {}) {
   }
 }
 
-export async function getChildren(rem, visibleOnly = False) {
+export async function getChildren(rem, visibleOnly = false) {
   const children = visibleOnly ? rem.visibleRemOnDocument : rem.children;
   // TODO: Children have the correct order, visibleRemOnDocument don't
-  children.reverse();
   return Promise.all(children.map((remId) => RemNoteAPI.v0.get(remId)));
 }
 
